@@ -16,7 +16,11 @@ An alternative would be to specify one interface per M/S pair.  This has the add
 
 A final design possability is the one interface per master, embedding N slave details in the interface.
 
-This might best be represented by a new block type of "BLOCK_LINK_TOPOLOGY" - it would include some amount of standard data about if the link is 1:1, 1:many or many:many, if the link is up or down, if the link supports resets or state changes, if the link is full/half duplex or if that can be changed, if the link has the ability to transition speeds or encodings.  The block would also encapsulate a namespace of options specific to the LINKTYPE for which it is related.  For SPI this is a great place to put any "next layer protocol" data like JEDEC as that is M/S link specific.
+### Block Type - `BLOCK_LINK_TOPOLOGY`
+
+This might best be represented by a new block type of `BLOCK_LINK_TOPOLOGY` - it would include some amount of standard data about if the link is 1:1, 1:many or many:many, if the link is up or down, if the link supports resets or state changes, if the link is full/half duplex or if that can be changed, if the link has the ability to transition speeds or encodings.  The block would also encapsulate a namespace of options specific to the LINKTYPE for which it is related.  For SPI this is a great place to put any "next layer protocol" data like JEDEC as that is M/S link specific.
+
+This block type would be useful in other contexts like `LINKTYPE_ETHERNET` by signaling STP/RSTP (spanning tree), ARP table, or port change on a switch which is recording this capture.  The block should be generically useful for signaling topology information passing by the interface.  This differes from a name resolution block as it doesnt enrich a identifier but indicates the correlated identifiers to an interface.
 
 It seems reasonable to make the assumption that all master slave relationships are fixed for the span of a transfer.
 
@@ -25,6 +29,8 @@ It seems reasonable to make the assumption that all master slave relationships a
 The RESET line allows a M/S to transition back through initial state.  This as well as SPI => Dual / Quad SPI changes should be logically captured as link level events, but are not themselves particularly interesting as the frames captured (one can almost think of RESET as a side channel to the actual transfers and lacks a way to repressent as an octet stream).
 
 This seems to be an unhandled case of pcapng itself.  A proposal would be to create a new block type for `BLOCK_LINK_CHANGE` that would allow resets, speed changes etc to be sideband data to the packet frames.  The SPI format would plumb through some relevent data (e.g. SPI/Dual/Quad) in every EPB as to free the readers from having to maintain a state machine to process these events.
+
+It occurs that `LINK_CHANGE` should incude a `link_id` which would correlate to `BLOCK_LINK_TOPOLOGY` allowing for the passing of changes for links other then the primary one.
 
 ## Transfer Frames
 
